@@ -1,5 +1,4 @@
 .commit-template.json
-.gitignore
 AUTHORS
 *.lock
 
