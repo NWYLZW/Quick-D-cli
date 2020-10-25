@@ -16,7 +16,7 @@ const defaultName = path.basename(cwdPath)
 let question = [{
     name: 'name',
     type: 'input',
-    message: `Please enter the project name(${defaultName})`,
+    message: `Please enter the project name`,
     default: defaultName
 }, {
     name: 'author',
@@ -29,7 +29,7 @@ let question = [{
 }, {
     name: 'license',
     type: 'input',
-    message: 'Please enter the project license(ISC)',
+    message: 'Please enter the project license',
     default: 'ISC'
 }, {
     name: 'packageTool',

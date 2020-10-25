@@ -1,6 +1,6 @@
 {
   "name": "quick-d-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Create a quick-d project",
   "main": "index.js",
   "bin": {
