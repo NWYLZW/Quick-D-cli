@@ -21,6 +21,8 @@ for (let controllersNameIndex in controllersFileNames) {
   }
 }
 
+require('@/listener/ServerErrorListener')
+
 app.listen(config.server.port, config.server.host, _ => {
     console.log(
       `Server is running in http://${config.server.host}:${config.server.port}`
