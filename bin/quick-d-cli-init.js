@@ -8,12 +8,14 @@ const ora       = require('ora')
 const chalk     = require('chalk')
 const inquirer  = require('inquirer')
 
+const { replaceByIfCommand } = require('../tool')
+
 const tplPkgFileObj = require('../template/base/package')
 
 const cwdPath = process.cwd()
 const defaultName = path.basename(cwdPath)
 
-let question = [{
+const question = [{
     name: 'name',
     type: 'input',
     message: `Please enter the project name`,
@@ -43,6 +45,17 @@ let question = [{
     type: 'confirm',
     message: 'Whether to use git(Y)',
     default: true
+}, {
+    name: 'selDataBaseSystem',
+    type: 'checkbox',
+    message: 'Please enter the project database',
+    choices: [{
+        name: 'mongodb',
+        checked: false
+    }, {
+        name: 'mysql',
+        checked: false
+    }]
 }]
 
 inquirer
@@ -66,6 +79,32 @@ inquirer
         path.join(cwdPath, './package.json'),
         JSON.stringify(
             pkgFileObj, null, 2
+        )
+    )
+    const selDataBaseSystem = answers.selDataBaseSystem.length !== 0
+    if (!selDataBaseSystem) {
+        delete pkgFileObj.dependencies.mongodb
+        fs.unlinkSync(
+            path.join(cwdPath, './src/plugin/dataBaseServer.js')
+        )
+    } else {
+        fs.writeFileSync(
+            path.join(cwdPath, './src/plugin/dataBaseServer.js'),
+            replaceByIfCommand(
+                path.join(__dirname, '../template/base/src/plugin/dataBaseServer.js'),
+                {
+                    selMongoDB: answers.selDataBaseSystem.indexOf('mongodb') !== -1,
+                    selMysql: answers.selDataBaseSystem.indexOf('mysql') !== -1
+                }
+            )
+        )
+    }
+    fs.writeFileSync(
+        path.join(cwdPath, './src/plugin/index.js'),
+        replaceByIfCommand(
+            path.join(__dirname, '../template/base/src/plugin/index.js'), {
+                selDataBaseSystem: selDataBaseSystem
+            }
         )
     )
     spinner.stop()

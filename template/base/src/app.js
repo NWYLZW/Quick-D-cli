@@ -23,6 +23,12 @@ for (let controllersNameIndex in controllersFileNames) {
 
 require('@/listener/ServerErrorListener')
 
+require('@/plugin/index')
+.registerPlugins()
+.then(r => {}).catch(e => {
+  console.error('Connect to database error: ', e)
+})
+
 app.listen(config.server.port, config.server.host, _ => {
     console.log(
       `Server is running in http://${config.server.host}:${config.server.port}`
