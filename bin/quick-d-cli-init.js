@@ -81,7 +81,13 @@ inquirer
             pkgFileObj, null, 2
         )
     )
+
     const selDataBaseSystem = answers.selDataBaseSystem.length !== 0
+    const dbAbles = {
+        selMongoDB: answers.selDataBaseSystem.indexOf('mongodb') !== -1,
+        selMysql: answers.selDataBaseSystem.indexOf('mysql') !== -1,
+        selDataBaseSystem: selDataBaseSystem
+    }
     if (!selDataBaseSystem) {
         delete pkgFileObj.dependencies.mongodb
         fs.unlinkSync(
@@ -91,22 +97,21 @@ inquirer
         fs.writeFileSync(
             path.join(cwdPath, './src/plugin/dataBaseServer.js'),
             replaceByIfCommand(
-                path.join(__dirname, '../template/base/src/plugin/dataBaseServer.js'),
-                {
-                    selMongoDB: answers.selDataBaseSystem.indexOf('mongodb') !== -1,
-                    selMysql: answers.selDataBaseSystem.indexOf('mysql') !== -1
-                }
+                path.join(__dirname, '../template/base/src/plugin/dataBaseServer.js'), dbAbles
             )
         )
     }
-    fs.writeFileSync(
+    const targetsFilePaths = [
         path.join(cwdPath, './src/plugin/index.js'),
-        replaceByIfCommand(
-            path.join(__dirname, '../template/base/src/plugin/index.js'), {
-                selDataBaseSystem: selDataBaseSystem
-            }
+        path.join(cwdPath, './src/config/dev.js'),
+        path.join(cwdPath, './src/config/pro.js')
+    ]
+    targetsFilePaths.forEach(targetsFilePath => {
+        fs.writeFileSync(
+            targetsFilePath,
+            replaceByIfCommand(targetsFilePath, dbAbles)
         )
-    )
+    })
     spinner.stop()
 
     const initGit = _ => {

@@ -2,8 +2,9 @@ export default {
   server: {
     host: '0.0.0.0',
     port: 12444
-  },
-  dataBaseServers: {
+  }
+  // if (selDataBaseSystem)
+  , dataBaseServers: {
     'mongodb-server-01': {
       type: 'mongodb',
       host: '127.0.0.1',
@@ -11,4 +12,5 @@ export default {
       dbName: 'pro-server-1'
     }
   }
+  // endif
 }

@@ -1,5 +1,6 @@
+// if (selDataBaseSystem)
 import { registerDBServers } from 'quick-d/lib'
-
+// endif
 import config from '@/config/index'
 
 // if (selDataBaseSystem)
