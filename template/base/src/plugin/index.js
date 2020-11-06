@@ -12,7 +12,6 @@ const registerPlugins = async () => {
   registerDBServers(
     await getDataBaseServers(config)
   )
-  console.log('global[\'$Quick-D\'][\'dataBaseServers\']: ', global['$Quick-D']['dataBaseServers'])
   // endif
 }
 

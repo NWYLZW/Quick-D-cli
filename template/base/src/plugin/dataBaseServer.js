@@ -12,6 +12,32 @@ const getMongoClient = dataBaseServer => {
     })
   })
 }
+
+const getMongooseClient = dataBaseServer => {
+  return new Promise((resolve, reject) => {
+    const url = 'mongodb://' +
+      (dataBaseServer.user     === undefined? '': dataBaseServer.user) +
+      (dataBaseServer.password === undefined? '':':' + dataBaseServer.password + '@') +
+      (dataBaseServer.host ?? 'localhost') +
+      (dataBaseServer.port     === undefined? '':':' + dataBaseServer.port) +
+      (dataBaseServer.dbName   === undefined? '':'/' + dataBaseServer.dbName)
+
+    const mongoose = new (require('mongoose').Mongoose)()
+    // Remove '(node:9716)DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead' warning
+    mongoose.set('useCreateIndex', true)
+    try {
+      resolve(
+        mongoose.connect(url, {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          ...dataBaseServer.option
+        })
+      )
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
 // endif
 export default async (config) => {
   const
@@ -28,6 +54,12 @@ export default async (config) => {
           type: 'mongodb',
           db: await getMongoClient(dataBaseServer)
         })
+        break
+      case 'mongoose':
+        dbClients[dataBaseServerName] = {
+          type: 'mongoose',
+          db: await getMongooseClient(dataBaseServer)
+        }
         break
       // endif
       // if (selMysql)

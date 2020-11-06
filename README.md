@@ -198,6 +198,7 @@ quick-d-cli init
 * [ ] 添加eslint选项用来规范代码风格
 * [ ] 添加数据库选项用来选择开发数据库
   * [x] mongodb
+    * [x] odm (mongoose)
   * [ ] mysql
 * [ ] 添加log4j选项用来记录日志信息
 * [ ] 添加是否自动生成接口文档选项，快速进行接口开发与测试

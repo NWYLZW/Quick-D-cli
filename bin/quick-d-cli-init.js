@@ -90,6 +90,7 @@ inquirer
     }
     if (!selDataBaseSystem) {
         delete pkgFileObj.dependencies.mongodb
+        delete pkgFileObj.dependencies.mongoose
         fs.unlinkSync(
             path.join(cwdPath, './src/plugin/dataBaseServer.js')
         )
@@ -100,8 +101,13 @@ inquirer
                 path.join(__dirname, '../template/base/src/plugin/dataBaseServer.js'), dbAbles
             )
         )
+        fse.copySync(
+            path.join(__dirname, '../template/model'),
+            path.join(cwdPath, './src/model')
+        )
     }
     const targetsFilePaths = [
+        path.join(cwdPath, './src/controller/HomeController.js'),
         path.join(cwdPath, './src/plugin/index.js'),
         path.join(cwdPath, './src/config/dev.js'),
         path.join(cwdPath, './src/config/pro.js')

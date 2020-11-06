@@ -3,14 +3,20 @@ export default {
     host: '127.0.0.1',
     port: 12333
   }
-  // if (selDataBaseSystem)
   , dataBaseServers: {
+    // if (selMongoDB)
     'mongodb-server-01': {
       type: 'mongodb',
       host: '127.0.0.1',
       port: 27017,
       dbName: 'dev-server-1'
+    },
+    'mongoose-server-01': {
+      type: 'mongoose',
+      host: '127.0.0.1',
+      port: 27017,
+      dbName: 'dev-server-1'
     }
+    // endif
   }
-  // endif
 }
