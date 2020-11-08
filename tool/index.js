@@ -4,49 +4,17 @@
  * @date    2020-10-30 11:30
  * @logs[0] 2020-10-30 11:30 yijie 创建了index.js文件
  */
-const cheerio = require('cheerio')
-const ejs     = require('ejs')
+const fse       = require('fs-extra')
+const path      = require('path')
+const { exec }  = require('child_process')
+const iconv     = require('iconv-lite')
+const cheerio   = require('cheerio')
+const ejs       = require('ejs')
 
-const fs = require('fs')
+// 获取命令行执行命令的路径
+const cwdPath = process.cwd()
 
 module.exports = {
-    /**
-     * 按照if条件保留代码块
-     * @param filePath  文件路径
-     * @param able      条件信息字典
-     * @returns {string}
-     */
-    replaceByIfCommand (filePath, able) {
-        const content = fs.readFileSync(filePath).toString()
-
-        const segments = content
-            .replace('\r\n', '\n')
-            .split('\/\/ endif\n')
-
-        const replaceBlanks = []
-
-        for (let i = 0;i < segments.length;i++) {
-            const segment = segments[i] + '\/\/ endif'
-            const ifSegment = (segment.match(
-                /\s*\/\/\ if\ \((.*)\).*(\/\/\ endif)?/sgm
-            ) || [''])[0]
-            if (ifSegment.trim() === '') continue
-
-            const args = ifSegment.match(/\/\/\ if\ \((.*)\)/) || [ '', '' ]
-            if (!(able[args[1]] || false)) {
-                replaceBlanks.push(ifSegment)
-            }
-        }
-
-        let baseStr = content
-        replaceBlanks.forEach(replaceBlank => {
-            baseStr = baseStr.replace(replaceBlank, '')
-        })
-        return baseStr
-            .replace(/\n?\s*\/\/\ if\ \((.*)\)/g, '')
-            .replace(/\n?\s*\/\/ endif/g, '')
-    },
-
     /**
      * 渲染对应的ejs文件
      * @param filePath  ejs文件路径
@@ -65,6 +33,54 @@ module.exports = {
                 const scriptContent = $('#content')
                     .html().substr(1)
                 resolve(scriptContent)
+            })
+        })
+    },
+
+    /**
+     * 初始化git仓库
+     * @returns {Promise<>}
+     */
+    initGit() {
+        return new Promise((resolve, reject) => {
+            exec('git init', {
+                encoding: 'buffer',
+                cwd: cwdPath
+            }, (err, stdout) => {
+                if (err) {
+                    err.message = 'Init git warehouse failure'
+                    reject(err); return
+                }
+                console.log(iconv.decode(stdout, 'cp936'))
+
+                fse.copySync(
+                    path.join(__dirname, '../template/.gitignore'),
+                    path.join(cwdPath, './.gitignore')
+                )
+                resolve()
+            })
+        })
+    },
+    /**
+     * 初始化node_modules
+     * @param packageToolName   包管理工具名
+     * @returns {Promise<unknown>}
+     */
+    packageInit (packageToolName) {
+        return new Promise((resolve, reject) => {
+            let spinner = ora('Initializing node modules ...\n')
+            spinner.start()
+            exec(`${packageToolName} install`, {
+                encoding: 'buffer',
+                cwd: cwdPath
+            }, (err, stdout) => {
+                spinner.stop()
+                if (err) {
+                    err.message = 'Init node modules failure'
+                    reject(err); return
+                }
+                console.log(iconv.decode(stdout, 'cp936'))
+                resolve()
             })
         })
     }

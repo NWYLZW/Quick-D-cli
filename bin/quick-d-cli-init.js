@@ -10,11 +10,17 @@ const chalk     = require('chalk')
 const inquirer  = require('inquirer')
 
 const tool = require('../tool')
-const { replaceByIfCommand } = require('../tool')
 
 const tplPkgFileObj = require('../template/base/package')
 
+// 通过正则设置忽略被批量删除的文件或文件夹
+const ignoreRegexes = [
+    // /dev\.ejs$/
+]
+
+// 获取命令行执行命令的路径
 const cwdPath = process.cwd()
+// 项目的默认名
 const defaultName = path.basename(cwdPath)
 
 const question = [{
@@ -43,9 +49,14 @@ const question = [{
         'npm', 'cnpm', 'yarn'
     ]
 }, {
+    name: 'autoInstall',
+    type: 'confirm',
+    message: 'Whether to install the module automatically',
+    default: false
+}, {
     name: 'useGit',
     type: 'confirm',
-    message: 'Whether to use git(Y)',
+    message: 'Whether to use git',
     default: true
 }, {
     name: 'selDataBaseSystem',
@@ -77,12 +88,6 @@ inquirer
         path.join(__dirname, '../template/base'),
         path.join(cwdPath, './')
     )
-    fs.writeFileSync(
-        path.join(cwdPath, './package.json'),
-        JSON.stringify(
-            pkgFileObj, null, 2
-        )
-    )
 
     const selDataBaseSystem = answers.selDataBaseSystem.length !== 0
     const dbAbles = {
@@ -90,6 +95,7 @@ inquirer
         selMysql: answers.selDataBaseSystem.indexOf('mysql') !== -1,
         selDataBaseSystem: selDataBaseSystem
     }
+    console.log(dbAbles)
     if (!selDataBaseSystem) {
         delete pkgFileObj.dependencies.mongodb
         delete pkgFileObj.dependencies.mongoose
@@ -105,6 +111,13 @@ inquirer
             path.join(cwdPath, './src/model')
         )
     }
+    fs.writeFileSync(
+        path.join(cwdPath, './package.json'),
+        JSON.stringify(
+            pkgFileObj, null, 2
+        )
+    )
+
     const targetsFilePaths = [
         path.join(cwdPath, './src/controller/HomeController'),
         path.join(cwdPath, './src/plugin/index'),
@@ -118,63 +131,30 @@ inquirer
         )
     }
 
-    const files = glob.sync(cwdPath + '/**/*.ejs')
-    for (let i = 0; i < files; i++) {
+    const files = glob.sync(cwdPath + '/src/**/*.ejs') || []
+    for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        fs.unlinkSync(file)
+        let unlink = true
+        for (let j = 0; j < ignoreRegexes.length; j++) {
+            const ignoreRegex = ignoreRegexes[j] || /.*/
+            if (ignoreRegex.test(file)) {
+                unlink = false
+                break
+            }
+        }
+        unlink && fs.unlinkSync(file)
     }
     spinner.stop()
 
-    const initGit = _ => {
-        return new Promise((resolve, reject) => {
-            if (answers.useGit) {
-                exec('git init', {
-                    encoding: 'buffer',
-                    cwd: cwdPath
-                }, (err, stdout) => {
-                    if (err) {
-                        console.log(err)
-                        reject(); return
-                    }
-                    console.log(iconv.decode(stdout, 'cp936'))
-
-                    fse.copySync(
-                        path.join(__dirname, '../template/.gitignore'),
-                        path.join(cwdPath, './.gitignore')
-                    )
-                    resolve()
-                })
-            } else {
-                resolve()
-            }
-        })
+    try {
+        if (answers.useGit) {
+            await tool.initGit()
+        }
+        if (answers.autoInstall) {
+            await tool.packageInit(answers.packageTool)
+        }
+        console.log(chalk.green('Created successfully'))
+    } catch (e) {
+        console.log(chalk.red(e.message))
     }
-    const packageInit = _ => {
-        return new Promise((resolve, reject) => {
-            let spinner = ora('Initializing node modules ...\n')
-            spinner.start()
-            exec(`${answers.packageTool} install`, {
-                encoding: 'buffer',
-                cwd: cwdPath
-            }, (err, stdout) => {
-                spinner.stop()
-                if (err) {
-                    console.log(err)
-                    reject(); return
-                }
-                console.log(iconv.decode(stdout, 'cp936'))
-                resolve()
-            })
-        })
-    }
-
-    initGit().then(_ => {
-        packageInit().then(_ => {
-            console.log(chalk.green('Created successfully'))
-        }).catch(_ => {
-            console.log(chalk.red('Init node modules failure'))
-        })
-    }).catch(_ => {
-        console.log(chalk.red('Init git warehouse failure'))
-    })
 })

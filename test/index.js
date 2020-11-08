@@ -10,5 +10,5 @@
 // })
 
 const glob = require('glob')
-const files = glob.sync('template/**/*.ejs')
+const files = glob.sync(process.cwd() + '/template/base/src/**/*.ejs')
 console.log(files)
