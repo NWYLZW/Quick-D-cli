@@ -59,7 +59,7 @@ const question = [{
 }]
 
 inquirer
-.prompt(question).then(answers => {
+.prompt(question).then(async answers => {
     let spinner = ora('Copying template ...\n')
     spinner.start()
 

@@ -4,6 +4,9 @@
  * @date    2020-10-30 11:30
  * @logs[0] 2020-10-30 11:30 yijie 创建了index.js文件
  */
+const cheerio = require('cheerio')
+const ejs     = require('ejs')
+
 const fs = require('fs')
 
 module.exports = {
@@ -42,5 +45,27 @@ module.exports = {
         return baseStr
             .replace(/\n?\s*\/\/\ if\ \((.*)\)/g, '')
             .replace(/\n?\s*\/\/ endif/g, '')
+    },
+
+    /**
+     * 渲染对应的ejs文件
+     * @param filePath  ejs文件路径
+     * @param data      传入数据
+     * @param option    参数
+     * @returns {Promise<string>}
+     */
+    render (filePath, data, option) {
+        return new Promise((resolve, reject) => {
+            ejs.renderFile(filePath, data, option, (err, str) => {
+                if (err) {
+                    reject(err)
+                    return
+                }
+                const $ = cheerio.load(str)
+                const scriptContent = $('#content')
+                    .html().substr(1)
+                resolve(scriptContent)
+            })
+        })
     }
 }

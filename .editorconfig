@@ -1,0 +1,4 @@
+root = true
+
+[**.ejs]
+indent_size = 2
