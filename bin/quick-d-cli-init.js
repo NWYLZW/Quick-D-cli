@@ -1,13 +1,11 @@
 #!/usr/bin/env node
-const fs        = require('fs')
-const fse       = require('fs-extra')
-const glob      = require('glob')
-const path      = require('path')
-const { exec }  = require('child_process')
-const iconv     = require('iconv-lite')
-const ora       = require('ora')
-const chalk     = require('chalk')
-const inquirer  = require('inquirer')
+const fs       = require('fs')
+const fse      = require('fs-extra')
+const glob     = require('glob')
+const path     = require('path')
+const ora      = require('ora')
+const chalk    = require('chalk')
+const inquirer = require('inquirer')
 
 const tool = require('../tool')
 
@@ -73,7 +71,7 @@ const question = [{
 
 inquirer
 .prompt(question).then(async answers => {
-    let spinner = ora('Copying template ...\n')
+    const spinner = ora('Copying template ...\n')
     spinner.start()
 
     const pkgFileObj = {
@@ -95,21 +93,14 @@ inquirer
         selMysql: answers.selDataBaseSystem.indexOf('mysql') !== -1,
         selDataBaseSystem: selDataBaseSystem
     }
-    console.log(dbAbles)
-    if (!selDataBaseSystem) {
-        delete pkgFileObj.dependencies.mongodb
-        delete pkgFileObj.dependencies.mongoose
-    } else {
-        fs.writeFileSync(
-            './src/plugin/dataBaseServer.js',
-            await tool.render(
-                require('path').join(cwdPath, './src/plugin/dataBaseServer.ejs'), dbAbles, 'utf-8'
-            )
-        )
+    if (selDataBaseSystem) {
         fse.copySync(
             path.join(__dirname, '../template/model'),
             path.join(cwdPath, './src/model')
         )
+    } else {
+        delete pkgFileObj.dependencies.mongodb
+        delete pkgFileObj.dependencies.mongoose
     }
     fs.writeFileSync(
         path.join(cwdPath, './package.json'),
@@ -118,16 +109,37 @@ inquirer
         )
     )
 
-    const targetsFilePaths = [
-        path.join(cwdPath, './src/controller/HomeController'),
-        path.join(cwdPath, './src/plugin/index'),
-        path.join(cwdPath, './src/config/dev'),
-        path.join(cwdPath, './src/config/pro')
-    ]
-    for (const targetsFilePath of targetsFilePaths) {
+    const ejsFiles = {
+        './src/controller/HomeController': {
+            vars: { ...dbAbles }
+        },
+        './src/plugin/index': {
+            vars: { ...dbAbles }
+        },
+        './src/plugin/dataBaseServer': {
+            delete: !selDataBaseSystem,
+            vars: { ...dbAbles }
+        },
+        './src/config/dev': {
+            vars: { ...dbAbles }
+        },
+        './src/config/pro': {
+            vars: { ...dbAbles }
+        }
+    }
+    for (const ejsFileName in ejsFiles) {
+        const ejsFileData = ejsFiles[ejsFileName]
+        if (ejsFileData.delete === true) {
+            continue
+        }
+        const ejsFilePath = path.join(cwdPath, ejsFileName)
         fs.writeFileSync(
-            `${targetsFilePath}.js`,
-            await tool.render(`${targetsFilePath}.ejs`, dbAbles, 'utf-8')
+            `${ejsFilePath}.js`,
+            await tool.render(
+                `${ejsFilePath}.ejs`,
+                ejsFileData.vars,
+                'utf-8'
+            )
         )
     }
 
