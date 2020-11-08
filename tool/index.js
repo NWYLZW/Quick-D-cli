@@ -8,6 +8,7 @@ const fse       = require('fs-extra')
 const path      = require('path')
 const { exec }  = require('child_process')
 const iconv     = require('iconv-lite')
+const ora       = require('ora')
 const cheerio   = require('cheerio')
 const ejs       = require('ejs')
 
