@@ -1,10 +1,11 @@
+<script id="content">
 export default {
   server: {
     host: '127.0.0.1',
     port: 12333
-  }
-  , dataBaseServers: {
-    // if (selMongoDB)
+  }<%_; if (selDataBaseSystem) { -%>,
+  dataBaseServers: {
+    <%_; if (selMongoDB) { -%>
     'mongodb-server-01': {
       type: 'mongodb',
       host: '127.0.0.1',
@@ -17,6 +18,8 @@ export default {
       port: 27017,
       dbName: 'dev-server-1'
     }
-    // endif
+    <%_ } -%>
   }
+  <%_ } -%>
 }
+</script>

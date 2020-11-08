@@ -1,19 +1,20 @@
+<script id="content">
 import { GetRequest } from 'quick-d/lib/common/Request'
 import { Controller } from 'quick-d/lib/common/Controller'
 import { Query } from 'quick-d/lib/common/BodyParam'
-// if (selMongoDB)
+<%_; if (selMongoDB) { -%>
 import { AutoWired } from 'quick-d/lib/common/Component'
 
 import UserModel from '@/model/UserModel'
-// endif
+<%_ } -%>
 
 @Controller('/home')
 class HomeController {
-  // if (selMongoDB)
+  <%_; if (selMongoDB) { -%>
   @AutoWired()
   static userModel: UserModel
-  // endif
 
+  <%_ } -%>
   @GetRequest('/hello')
   async hello (ctx) {
     console.log(ctx)
@@ -27,13 +28,15 @@ class HomeController {
     @Query('nickName', true) nickName,
     @Query('password', true) password
   ) {
-    // if (selMongoDB)
+    <%_; if (selMongoDB) { -%>
     console.log(await this.userModel.addUser(
       name, nickName, password
     ))
-    // endif
+
+    <%_ } -%>
     return {
       name, nickName, password
     }
   }
 }
+</script>

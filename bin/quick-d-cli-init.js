@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs        = require('fs')
 const fse       = require('fs-extra')
+const glob      = require('glob')
 const path      = require('path')
 const { exec }  = require('child_process')
 const iconv     = require('iconv-lite')
@@ -8,6 +9,7 @@ const ora       = require('ora')
 const chalk     = require('chalk')
 const inquirer  = require('inquirer')
 
+const tool = require('../tool')
 const { replaceByIfCommand } = require('../tool')
 
 const tplPkgFileObj = require('../template/base/package')
@@ -91,14 +93,11 @@ inquirer
     if (!selDataBaseSystem) {
         delete pkgFileObj.dependencies.mongodb
         delete pkgFileObj.dependencies.mongoose
-        fs.unlinkSync(
-            path.join(cwdPath, './src/plugin/dataBaseServer.js')
-        )
     } else {
         fs.writeFileSync(
-            path.join(cwdPath, './src/plugin/dataBaseServer.js'),
-            replaceByIfCommand(
-                path.join(__dirname, '../template/base/src/plugin/dataBaseServer.js'), dbAbles
+            './src/plugin/dataBaseServer.js',
+            await tool.render(
+                require('path').join(cwdPath, './src/plugin/dataBaseServer.ejs'), dbAbles, 'utf-8'
             )
         )
         fse.copySync(
@@ -107,17 +106,23 @@ inquirer
         )
     }
     const targetsFilePaths = [
-        path.join(cwdPath, './src/controller/HomeController.js'),
-        path.join(cwdPath, './src/plugin/index.js'),
-        path.join(cwdPath, './src/config/dev.js'),
-        path.join(cwdPath, './src/config/pro.js')
+        path.join(cwdPath, './src/controller/HomeController'),
+        path.join(cwdPath, './src/plugin/index'),
+        path.join(cwdPath, './src/config/dev'),
+        path.join(cwdPath, './src/config/pro')
     ]
-    targetsFilePaths.forEach(targetsFilePath => {
+    for (const targetsFilePath of targetsFilePaths) {
         fs.writeFileSync(
-            targetsFilePath,
-            replaceByIfCommand(targetsFilePath, dbAbles)
+            `${targetsFilePath}.js`,
+            await tool.render(`${targetsFilePath}.ejs`, dbAbles, 'utf-8')
         )
-    })
+    }
+
+    const files = glob.sync(cwdPath + '/**/*.ejs')
+    for (let i = 0; i < files; i++) {
+        const file = files[i]
+        fs.unlinkSync(file)
+    }
     spinner.stop()
 
     const initGit = _ => {

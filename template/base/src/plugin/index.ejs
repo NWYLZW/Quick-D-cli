@@ -1,20 +1,22 @@
-// if (selDataBaseSystem)
+<script id="content">
+<%_; if (selDataBaseSystem) { -%>
 import { registerDBServers } from 'quick-d/lib'
-// endif
+<%_ } -%>
 import config from '@/config/index'
 
-// if (selDataBaseSystem)
+<%_; if (selDataBaseSystem) { -%>
 import getDataBaseServers from '@/plugin/dataBaseServer'
-// endif
+<%_ } -%>
 
 const registerPlugins = async () => {
-  // if (selDataBaseSystem)
+  <%_; if (selDataBaseSystem) { -%>
   registerDBServers(
     await getDataBaseServers(config)
   )
-  // endif
+  <%_ } -%>
 }
 
 export {
   registerPlugins
 }
+</script>
